@@ -284,6 +284,7 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 		p->uploaded = uploaded;
 		p->downloaded = downloaded;
 		p->announces = 1;
+                // Lanz: here we need to set up the starting time as seeder if left == 0
 	} else {
 		long long uploaded_change = 0;
 		long long downloaded_change = 0;
