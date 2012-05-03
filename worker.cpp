@@ -489,14 +489,15 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 	record << '(' << u.id << ',' << tor.id << ',' << active << ',' << uploaded << ',' << downloaded << ',' << upspeed << ',' << downspeed << ',' << left << ',' << (cur_time - p->first_announced) << ',' << p->announces << ',';
 	std::string record_str = record.str();
 	db->record_peer(record_str, ip, peer_id, headers["user-agent"]);
-
+// TODO: Lanz, disapled since it's not used in the front end and table is missing. Add later?
+/*
 	if (real_uploaded_change > 0 || real_downloaded_change > 0) {
 		record.str("");
 		record << '(' << u.id << ',' << downloaded << ',' << left << ',' << uploaded << ',' << upspeed << ',' << downspeed << ',' << (cur_time - p->first_announced);
 		record_str = record.str();
 		db->record_peer_hist(record_str, peer_id, tor.id);
 	}
-	
+*/	
 	std::string response = "d8:intervali";
 	response.reserve(350);
 	response += inttostr(conf->announce_interval+std::min((size_t)600, tor.seeders.size())); // ensure a more even distribution of announces/second
