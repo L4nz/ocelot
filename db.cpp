@@ -33,7 +33,7 @@ mysql::mysql(std::string mysql_db, std::string mysql_host, std::string username,
 }
 
 void mysql::load_torrents(std::unordered_map<std::string, torrent> &torrents) {
-        mysqlpp::Query query = conn.query("SELECT ID, info_hash, freetorrent, Snatched FROM torrents ORDER BY ID;");
+        mysqlpp::Query query = conn.query("SELECT ID, info_hash, freetorrent, double_seed, Snatched FROM torrents ORDER BY ID;");
         if(mysqlpp::StoreQueryResult res = query.store()) {
                 mysqlpp::String one("1"); // Hack to get around bug in mysql++3.0.0
                 mysqlpp::String two("2");
@@ -51,8 +51,14 @@ void mysql::load_torrents(std::unordered_map<std::string, torrent> &torrents) {
                         } else {
                                 t.free_torrent = NORMAL;
                         }
+                        if(res[i][3].compare(one) == 0) {
+                            t.double_seed = true;
+                        } else {
+                            t.double_seed = false;
+                        }
+
                         t.balance = 0;
-                        t.completed = res[i][3];
+                        t.completed = res[i][4];
                         t.last_selected_seeder = "";
                         torrents[info_hash] = t;
                 }

@@ -30,6 +30,7 @@ typedef struct {
 	long long balance;
 	int completed;
 	freetype free_torrent;
+        bool double_seed;
 	std::map<std::string, peer> seeders;
 	std::map<std::string, peer> leechers;
 	std::string last_selected_seeder;
