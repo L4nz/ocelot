@@ -310,24 +310,27 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 				upspeed = uploaded_change / (cur_time - p->last_announced);
 				downspeed = downloaded_change / (cur_time - p->last_announced);
 			}
-			std::set<int>::iterator sit = tor.tokened_users.find(u.id);
-			if (tor.free_torrent == NEUTRAL) {
+			std::map<int, tokentype>::iterator sit = tor.tokened_users.find(u.id);
+
+                        // Lanz: If we are using a token update the record for it with the accurate stats first.
+                        if(sit != tor.tokened_users.end()) {
+                                expire_token = true;
+                                std::stringstream record;
+                                record << '(' << u.id << ',' << tor.id << ',' << downloaded_change << '.' << uploaded_change << ')';
+                                std::string record_str = record.str();
+                                db->record_token(record_str);
+                        }
+
+                        if (tor.free_torrent == NEUTRAL) {
 				downloaded_change = 0;
 				uploaded_change = 0;
-			} else if(tor.free_torrent == FREE || sit != tor.tokened_users.end()) {
-				if(sit != tor.tokened_users.end()) {
-					expire_token = true;
-					std::stringstream record;
-					record << '(' << u.id << ',' << tor.id << ',' << downloaded_change << ')';
-					std::string record_str = record.str();
-					db->record_token(record_str);
-				}
+			} else if(tor.free_torrent == FREE || (sit != tor.tokened_users.end() && sit->second == LEECH)) {
 				downloaded_change = 0;
 			}
 			
                         // Lanz, double seed gives you double upload ammount.
-                        if (tor.double_seed) {
-                            uploaded_change *= 2;
+                        if (tor.double_seed || (sit != tor.tokened_users.end() && sit->second == SEED)) {
+                                uploaded_change *= 2;
                         }
                         
 			if(uploaded_change || downloaded_change) {
@@ -623,12 +626,22 @@ std::string worker::update(std::map<std::string, std::string> &params) {
 				std::cout << "Failed to find torrent " << info_hash << " to FL " << fl << std::endl;
 			}
 		}
-	} else if(params["action"] == "add_token") {
+        // Lanz, changed add_token to add_token_leech and add_token_seed to deal with the two types.
+	} else if(params["action"] == "add_token_leech") {
 		std::string info_hash = hex_decode(params["info_hash"]);
 		int user_id = atoi(params["userid"].c_str());
 		auto torrent_it = torrents_list.find(info_hash);
 		if (torrent_it != torrents_list.end()) {
-			torrent_it->second.tokened_users.insert(user_id);
+			torrent_it->second.tokened_users.insert(std::pair<int, tokentype>(user_id, LEECH));
+		} else {
+			std::cout << "Failed to find torrent to add a token for user " << user_id << std::endl;
+		}
+	} else if(params["action"] == "add_token_seed") {
+		std::string info_hash = hex_decode(params["info_hash"]);
+		int user_id = atoi(params["userid"].c_str());
+		auto torrent_it = torrents_list.find(info_hash);
+		if (torrent_it != torrents_list.end()) {
+			torrent_it->second.tokened_users.insert(std::pair<int, tokentype>(user_id, SEED));
 		} else {
 			std::cout << "Failed to find torrent to add a token for user " << user_id << std::endl;
 		}

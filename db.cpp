@@ -82,16 +82,24 @@ void mysql::load_users(std::unordered_map<std::string, user> &users) {
 }
 
 void mysql::load_tokens(std::unordered_map<std::string, torrent> &torrents) {
-        mysqlpp::Query query = conn.query("SELECT uf.UserID, t.info_hash FROM users_freeleeches AS uf JOIN torrents AS t ON t.ID = uf.TorrentID WHERE uf.Expired = '0';");
+        mysqlpp::Query query = conn.query("SELECT uf.UserID, uf.Type, t.info_hash FROM users_freeleeches AS uf JOIN torrents AS t ON t.ID = uf.TorrentID WHERE uf.Expired = '0';");
         if (mysqlpp::StoreQueryResult res = query.store()) {
+                mysqlpp::String leech("leech");
+                mysqlpp::String seed("seed");
                 size_t num_rows = res.num_rows();
                 for (size_t i = 0; i < num_rows; i++) {
                         std::string info_hash;
-                        res[i][1].to_string(info_hash);
+                        res[i][2].to_string(info_hash);
                         std::unordered_map<std::string, torrent>::iterator it = torrents.find(info_hash);
                         if (it != torrents.end()) {
+                                tokentype type;
+                                if(res[i][1].compare(leech) == 0) {
+                                    type = LEECH;
+                                } else {
+                                    type = SEED;
+                                }
                                 torrent &tor = it->second;
-                                tor.tokened_users.insert(res[i][0]);
+                                tor.tokened_users.insert(std::pair<int, tokentype>(res[i][0], type));
                         }
                 }
         }
@@ -280,8 +288,8 @@ void mysql::flush_tokens() {
 	if (update_token_buffer == "") {
 		return;
 	}
-	sql = "INSERT INTO users_freeleeches (UserID, TorrentID, Downloaded) VALUES " + update_token_buffer +
-		" ON DUPLICATE KEY UPDATE Downloaded = Downloaded + VALUES(Downloaded)";
+	sql = "INSERT INTO users_freeleeches (UserID, TorrentID, Downloaded, Uploaded) VALUES " + update_token_buffer +
+		" ON DUPLICATE KEY UPDATE Downloaded = Downloaded + VALUES(Downloaded), Uploaded = Uploaded + VALUES(Uploaded)";
 	token_queue.push(sql);
 	update_token_buffer.clear();
 	if (token_queue.size() == 1 && tok_active == false) {

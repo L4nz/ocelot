@@ -23,6 +23,7 @@ typedef struct {
 typedef std::map<std::string, peer> peer_list;
 
 enum freetype { NORMAL, FREE, NEUTRAL };
+enum tokentype { LEECH, SEED };
 
 typedef struct {
 	int id;
@@ -34,7 +35,7 @@ typedef struct {
 	std::map<std::string, peer> seeders;
 	std::map<std::string, peer> leechers;
 	std::string last_selected_seeder;
-	std::set<int> tokened_users;
+	std::map<int, tokentype> tokened_users;
 	time_t last_flushed;
 } torrent;
 
