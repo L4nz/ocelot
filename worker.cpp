@@ -170,7 +170,7 @@ std::string worker::work(std::string &input, std::string &ip) {
 	if(u == users_list.end()) {
 		return error("passkey not found");
 	}
-	
+        
 	if(action == ANNOUNCE) {
 		boost::mutex::scoped_lock lock(db->torrent_list_mutex);
 		// Let's translate the infohash into something nice
@@ -178,7 +178,7 @@ std::string worker::work(std::string &input, std::string &ip) {
 		std::string info_hash_decoded = hex_decode(params["info_hash"]);
 		torrent_list::iterator tor = torrents_list.find(info_hash_decoded);
 		if(tor == torrents_list.end()) {
-			return error("unregistered torrent");
+ 			return error("unregistered torrent");
 		}
 		return announce(tor->second, u->second, params, headers, ip);
 	} else {
@@ -270,9 +270,10 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 	p->left = left;
 	long long upspeed = 0;
 	long long downspeed = 0;
-	long long real_uploaded_change = 0;
+        /* Lanz: Not used for now.
+        long long real_uploaded_change = 0;
 	long long real_downloaded_change = 0;
-	
+	*/
 	if(inserted || params["event"] == "started" || uploaded < p->uploaded || downloaded < p->downloaded) {
 		//New peer on this torrent
 		update_torrent = true;
@@ -291,12 +292,12 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 		
 		if(uploaded != p->uploaded) {
 			uploaded_change = uploaded - p->uploaded;
-			real_uploaded_change = uploaded_change;
+			/* real_uploaded_change = uploaded_change; */
 			p->uploaded = uploaded;
 		}
 		if(downloaded != p->downloaded) {
 			downloaded_change = downloaded - p->downloaded;
-			real_downloaded_change = downloaded_change;
+			/*real_downloaded_change = downloaded_change; */
 			p->downloaded = downloaded;
 		}
 		if(uploaded_change || downloaded_change) {
