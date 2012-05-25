@@ -317,7 +317,7 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
                         if(sit != tor.tokened_users.end()) {
                                 expire_token = true;
                                 std::stringstream record;
-                                record << '(' << u.id << ',' << tor.id << ',' << downloaded_change << '.' << uploaded_change << ')';
+                                record << '(' << u.id << ',' << tor.id << ',' << downloaded_change << ',' << uploaded_change << ')';
                                 std::string record_str = record.str();
                                 db->record_token(record_str);
                         }
