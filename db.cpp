@@ -66,7 +66,7 @@ void mysql::load_torrents(std::unordered_map<std::string, torrent> &torrents) {
 }
 
 void mysql::load_users(std::unordered_map<std::string, user> &users) {
-        mysqlpp::Query query = conn.query("SELECT ID, can_leech, torrent_pass FROM users_main WHERE Enabled='1';");
+        mysqlpp::Query query = conn.query("SELECT ID, can_leech, torrent_pass, personal_freeleech FROM users_main WHERE Enabled='1';");
         if(mysqlpp::StoreQueryResult res = query.store()) {
                 size_t num_rows = res.num_rows();
                 for(size_t i = 0; i < num_rows; i++) {
@@ -76,6 +76,8 @@ void mysql::load_users(std::unordered_map<std::string, user> &users) {
                         user u;
                         u.id = res[i][0];
                         u.can_leech = res[i][1];
+                        mysqlpp::DateTime dt = res[i][3];
+                        u.pfl = dt;
                         users[passkey] = u;
                 }
         }

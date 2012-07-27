@@ -23,6 +23,8 @@
 #include <boost/thread/locks.hpp>
 #include <boost/bind.hpp>
 
+#include "mysql++.h"
+
 //---------- Worker - does stuff with input
 worker::worker(torrent_list &torrents, user_list &users, std::vector<std::string> &_whitelist, config * conf_obj, mysql * db_obj, site_comm &sc) : torrents_list(torrents), users_list(users), whitelist(_whitelist), conf(conf_obj), db(db_obj), s_comm(sc) {
 	status = OPEN;
@@ -210,7 +212,11 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 	bool update_torrent = false; // Whether or not we should update the torrent in the DB
 	bool expire_token = false; // Whether or not to expire a token after torrent completion
 	
-	std::map<std::string, std::string>::const_iterator peer_id_iterator = params.find("peer_id");
+        // Lanz: used to keep track of the new personal freeleech code
+        time_t now;
+        time(&now);
+
+        std::map<std::string, std::string>::const_iterator peer_id_iterator = params.find("peer_id");
 	if(peer_id_iterator == params.end()) {
 		return error("no peer id");
 	}
@@ -327,7 +333,7 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
                         if (tor.free_torrent == NEUTRAL) {
 				downloaded_change = 0;
 				uploaded_change = 0;
-			} else if(tor.free_torrent == FREE || (sit != tor.tokened_users.end() && sit->second == LEECH)) {
+			} else if(tor.free_torrent == FREE || (sit != tor.tokened_users.end() && sit->second == LEECH) || u.pfl >= now) {
 				downloaded_change = 0;
 			}
 			
@@ -693,6 +699,7 @@ std::string worker::update(std::map<std::string, std::string> &params) {
 		if(params["can_leech"] == "0") {
 			can_leech = false;
 		}
+
 		user_list::iterator i = users_list.find(passkey);
 		if (i == users_list.end()) {
 			std::cout << "No user with passkey " << passkey << " found when attempting to change leeching status!" << std::endl;
@@ -700,7 +707,19 @@ std::string worker::update(std::map<std::string, std::string> &params) {
 			users_list[passkey].can_leech = can_leech;
 			std::cout << "Updated user " << passkey << std::endl;
 		}
-	} else if(params["action"] == "add_whitelist") {
+	} else if(params["action"] == "set_personal_freeleech") {
+		std::string passkey = params["passkey"];
+                mysqlpp::DateTime dt = mysqlpp::DateTime(params["until_time"]);
+                
+		user_list::iterator i = users_list.find(passkey);
+		if (i == users_list.end()) {
+			std::cout << "No user with passkey " << passkey << " found when attempting set personal freeleech!" << std::endl;
+		} else {
+			users_list[passkey].pfl = dt;
+			std::cout << "Personal freeleech set to user " << passkey << " until time: " << params["until_time"] << std::endl;
+		}
+            
+        } else if(params["action"] == "add_whitelist") {
 		std::string peer_id = params["peer_id"];
 		whitelist.push_back(peer_id);
 		std::cout << "Whitelisted " << peer_id << std::endl;
