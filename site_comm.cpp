@@ -14,6 +14,8 @@ site_comm::site_comm(config &config)
 	conf = config;
 }
 
+// Lanz: this is no longer used, but I'm keeping it incase we need
+// it in the future.
 bool site_comm::expire_token(int torrent, int user)
 {
 	try {

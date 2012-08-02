@@ -210,9 +210,9 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 	
 	bool inserted = false; // If we insert the peer as opposed to update
 	bool update_torrent = false; // Whether or not we should update the torrent in the DB
-	bool expire_token = false; // Whether or not to expire a token after torrent completion
 	
         // Lanz: used to keep track of the new personal freeleech code
+        // freeleech and double seed slots.
         time_t now;
         time(&now);
 
@@ -317,13 +317,10 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 				upspeed = uploaded_change / (cur_time - p->last_announced);
 				downspeed = downloaded_change / (cur_time - p->last_announced);
 			}
-			std::map<int, tokentype>::iterator sit = tor.tokened_users.find(u.id);
+			std::map<int, slots_t>::iterator sit = tor.tokened_users.find(u.id);
 
                         // Lanz: If we are using a token update the record for it with the accurate stats first.
                         if(sit != tor.tokened_users.end()) {
-                                if (sit->second == LEECH) {
-                                    expire_token = true;
-                                }
                                 std::stringstream record;
                                 record << '(' << u.id << ',' << tor.id << ',' << downloaded_change << ',' << uploaded_change << ')';
                                 std::string record_str = record.str();
@@ -333,15 +330,15 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
                         if (tor.free_torrent == NEUTRAL) {
 				downloaded_change = 0;
 				uploaded_change = 0;
-			} else if(tor.free_torrent == FREE || (sit != tor.tokened_users.end() && sit->second == LEECH) || u.pfl >= now) {
+			} else if(tor.free_torrent == FREE || (sit != tor.tokened_users.end() && sit->second.free_leech >= now) || u.pfl >= now) {
 				downloaded_change = 0;
 			}
 			
                         // Lanz, double seed gives you double upload ammount.
-                        if (tor.double_seed || (sit != tor.tokened_users.end() && sit->second == SEED)) {
+                        if (tor.double_seed || (sit != tor.tokened_users.end() && sit->second.double_seed >= now)) {
                                 uploaded_change *= 2;
                         }
-                        
+
 			if(uploaded_change || downloaded_change) {
 				
 				std::stringstream record;
@@ -426,11 +423,6 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 		// User is a seeder now!
 		tor.seeders.insert(std::pair<std::string, peer>(peer_id, *p));
 		tor.leechers.erase(peer_id);
-		if(expire_token) {
-			(&s_comm)->expire_token(tor.id, u.id);
-			tor.tokened_users.erase(u.id);
-		}
-		// do cache expire
 	}
 
 	std::string peers;
@@ -640,28 +632,52 @@ std::string worker::update(std::map<std::string, std::string> &params) {
 		std::string info_hash = hex_decode(params["info_hash"]);
 		int user_id = atoi(params["userid"].c_str());
 		auto torrent_it = torrents_list.find(info_hash);
-		if (torrent_it != torrents_list.end()) {
-			torrent_it->second.tokened_users.insert(std::pair<int, tokentype>(user_id, LEECH));
+		mysqlpp::DateTime fl = mysqlpp::DateTime(params["time"].c_str());
+                // Find the torrent.
+                if (torrent_it != torrents_list.end()) {
+                        std::map<int, slots_t>::iterator sit = torrent_it->second.tokened_users.find(user_id);
+                        // The user already have a slot, update
+                        if (sit != torrent_it->second.tokened_users.end()) {
+                            sit->second.free_leech = fl;
+                        } else {
+                            slots_t slots;
+                            slots.free_leech = fl;
+                            slots.double_seed = 0;
+                            torrent_it->second.tokened_users.insert(std::pair<int, slots_t>(user_id, slots));
+                        }
 		} else {
-			std::cout << "Failed to find torrent to add a token for user " << user_id << std::endl;
+			std::cout << "Failed to find torrent to add a freeleech token for user " << user_id << std::endl;
 		}
 	} else if(params["action"] == "add_token_seed") {
 		std::string info_hash = hex_decode(params["info_hash"]);
 		int user_id = atoi(params["userid"].c_str());
 		auto torrent_it = torrents_list.find(info_hash);
-		if (torrent_it != torrents_list.end()) {
-			torrent_it->second.tokened_users.insert(std::pair<int, tokentype>(user_id, SEED));
-		} else {
-			std::cout << "Failed to find torrent to add a token for user " << user_id << std::endl;
+		mysqlpp::DateTime ds = mysqlpp::DateTime(params["time"].c_str());
+                // Find the torrent.
+                if (torrent_it != torrents_list.end()) {
+                        std::map<int, slots_t>::iterator sit = torrent_it->second.tokened_users.find(user_id);
+                        // The user already have a slot, update
+                        if (sit != torrent_it->second.tokened_users.end()) {
+                            sit->second.double_seed = ds;
+                        } else {
+                            slots_t slots;
+                            slots.free_leech = 0;
+                            slots.double_seed = ds;
+                            torrent_it->second.tokened_users.insert(std::pair<int, slots_t>(user_id, slots));
+                        }		
+                } else {
+			std::cout << "Failed to find torrent to add a double seed token for user " << user_id << std::endl;
 		}
-	} else if(params["action"] == "remove_token") {
+        // Lanz: Changed to plural tokens for now since this will remove both double seed and freeleech. 
+        // better granularity might be needed later though.
+	} else if(params["action"] == "remove_tokens") {
 		std::string info_hash = hex_decode(params["info_hash"]);
 		int user_id = atoi(params["userid"].c_str());
 		auto torrent_it = torrents_list.find(info_hash);
 		if (torrent_it != torrents_list.end()) {
 			torrent_it->second.tokened_users.erase(user_id);
 		} else {
-			std::cout << "Failed to find torrent " << info_hash << " to remove token for user " << user_id << std::endl;
+			std::cout << "Failed to find torrent " << info_hash << " to remove tokens for user " << user_id << std::endl;
 		}
 	} else if(params["action"] == "delete_torrent") {
 		std::string info_hash = params["info_hash"];

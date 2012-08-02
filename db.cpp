@@ -84,24 +84,22 @@ void mysql::load_users(std::unordered_map<std::string, user> &users) {
 }
 
 void mysql::load_tokens(std::unordered_map<std::string, torrent> &torrents) {
-        mysqlpp::Query query = conn.query("SELECT uf.UserID, uf.Type, t.info_hash FROM users_freeleeches AS uf JOIN torrents AS t ON t.ID = uf.TorrentID WHERE uf.Expired = '0';");
+        mysqlpp::Query query = conn.query("SELECT us.UserID, us.FreeLeech, us.DoubleSeed, t.info_hash FROM users_slots AS us JOIN torrents AS t ON t.ID = us.TorrentID;");
         if (mysqlpp::StoreQueryResult res = query.store()) {
-                mysqlpp::String leech("leech");
-                mysqlpp::String seed("seed");
                 size_t num_rows = res.num_rows();
                 for (size_t i = 0; i < num_rows; i++) {
                         std::string info_hash;
                         res[i][2].to_string(info_hash);
                         std::unordered_map<std::string, torrent>::iterator it = torrents.find(info_hash);
                         if (it != torrents.end()) {
-                                tokentype type;
-                                if(res[i][1].compare(leech) == 0) {
-                                    type = LEECH;
-                                } else {
-                                    type = SEED;
-                                }
+                                mysqlpp::DateTime fl = res[i][1]; 
+                                mysqlpp::DateTime ds = res[i][2];
+                                slots_t slots;
+                                slots.free_leech = fl;
+                                slots.double_seed = ds;
+                                
                                 torrent &tor = it->second;
-                                tor.tokened_users.insert(std::pair<int, tokentype>(res[i][0], type));
+                                tor.tokened_users.insert(std::pair<int, slots_t>(res[i][0], slots));
                         }
                 }
         }
