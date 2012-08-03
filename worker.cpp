@@ -627,42 +627,44 @@ std::string worker::update(std::map<std::string, std::string> &params) {
 				std::cout << "Failed to find torrent " << info_hash << " to FL " << fl << std::endl;
 			}
 		}
-        // Lanz, changed add_token to add_token_leech and add_token_seed to deal with the two types.
-	} else if(params["action"] == "add_token_leech") {
+        // Lanz, changed add_token to add_token_fl and add_token_ds to deal with the two types.
+	} else if(params["action"] == "add_token_fl") {
 		std::string info_hash = hex_decode(params["info_hash"]);
 		int user_id = atoi(params["userid"].c_str());
 		auto torrent_it = torrents_list.find(info_hash);
-		mysqlpp::DateTime fl = mysqlpp::DateTime(params["time"].c_str());
+                time_t time = (time_t)atoi(params["time"].c_str());
+
                 // Find the torrent.
                 if (torrent_it != torrents_list.end()) {
                         std::map<int, slots_t>::iterator sit = torrent_it->second.tokened_users.find(user_id);
                         // The user already have a slot, update
                         if (sit != torrent_it->second.tokened_users.end()) {
-                            sit->second.free_leech = fl;
+                            sit->second.free_leech = time;
                         } else {
                             slots_t slots;
-                            slots.free_leech = fl;
+                            slots.free_leech = time;
                             slots.double_seed = 0;
                             torrent_it->second.tokened_users.insert(std::pair<int, slots_t>(user_id, slots));
                         }
 		} else {
 			std::cout << "Failed to find torrent to add a freeleech token for user " << user_id << std::endl;
 		}
-	} else if(params["action"] == "add_token_seed") {
+	} else if(params["action"] == "add_token_ds") {
 		std::string info_hash = hex_decode(params["info_hash"]);
 		int user_id = atoi(params["userid"].c_str());
 		auto torrent_it = torrents_list.find(info_hash);
-		mysqlpp::DateTime ds = mysqlpp::DateTime(params["time"].c_str());
+                time_t time = (time_t)atoi(params["time"].c_str());
+
                 // Find the torrent.
                 if (torrent_it != torrents_list.end()) {
                         std::map<int, slots_t>::iterator sit = torrent_it->second.tokened_users.find(user_id);
                         // The user already have a slot, update
                         if (sit != torrent_it->second.tokened_users.end()) {
-                            sit->second.double_seed = ds;
+                            sit->second.double_seed = time;
                         } else {
                             slots_t slots;
                             slots.free_leech = 0;
-                            slots.double_seed = ds;
+                            slots.double_seed = time;
                             torrent_it->second.tokened_users.insert(std::pair<int, slots_t>(user_id, slots));
                         }		
                 } else {
