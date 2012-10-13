@@ -26,6 +26,7 @@
 #include "mysql++.h"
 
 //---------- Worker - does stuff with input
+// Added for testing. //Mobbo
 worker::worker(torrent_list &torrents, user_list &users, std::vector<std::string> &_whitelist, config * conf_obj, mysql * db_obj, site_comm &sc) : torrents_list(torrents), users_list(users), whitelist(_whitelist), conf(conf_obj), db(db_obj), s_comm(sc) {
 	status = OPEN;
 }
