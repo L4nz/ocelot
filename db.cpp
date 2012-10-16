@@ -255,7 +255,7 @@ void mysql::flush_peers() {
 				"downloaded=VALUES(downloaded), upspeed=VALUES(upspeed), " +
 				"downspeed=VALUES(downspeed), remaining=VALUES(remaining), " +
 				"timespent=VALUES(timespent), announced=VALUES(announced), " + 
-				"mtime=VALUES(mtime), peer=VALUES(peer)";
+				"mtime=VALUES(mtime), port=VALUES(port)";
 	peer_queue.push(sql);
 	update_peer_buffer.clear();
 	if (peer_queue.size() == 2 && p_active == false) {
