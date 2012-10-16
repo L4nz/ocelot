@@ -138,14 +138,15 @@ void mysql::record_torrent(std::string &record) {
         }
         update_torrent_buffer += record;
 }
-void mysql::record_peer(std::string &record, std::string &ip, std::string &peer_id, std::string &useragent) {
+void mysql::record_peer(std::string &record, std::string &ip, int port, std::string &peer_id, std::string &useragent) {
+	// Added port to this function //Mobbo
         boost::mutex::scoped_lock lock(peer_buffer_lock);
         if(update_peer_buffer != "") {
                 update_peer_buffer += ",";
         }
         mysqlpp::Query q = conn.query();
-        q << record << mysqlpp::quote << ip << ',' << mysqlpp::quote << peer_id << ',' << mysqlpp::quote << useragent << "," << time(NULL) << ')';
-
+        q << record << mysqlpp::quote << ip << ',' << port << ',' << mysqlpp::quote << peer_id << ',' << mysqlpp::quote << useragent << "," << time(NULL) << ')';
+	// port without qoutes since it is a int in the DB //Mobbo
         update_peer_buffer += q.str();
 }
 
@@ -247,8 +248,9 @@ void mysql::flush_peers() {
 		sql.clear();
 	}
 	
+	// Added port below to record it into the DB. //Mobbo
 	sql = "INSERT INTO xbt_files_users (uid,fid,active,uploaded,downloaded,upspeed,downspeed,remaining," +
-		std::string("timespent,announced,ip,peer_id,useragent,mtime) VALUES ") + update_peer_buffer + 
+		std::string("timespent,announced,ip,port,peer_id,useragent,mtime) VALUES ") + update_peer_buffer + 
 				" ON DUPLICATE KEY UPDATE active=VALUES(active), uploaded=VALUES(uploaded), " +
 				"downloaded=VALUES(downloaded), upspeed=VALUES(upspeed), " +
 				"downspeed=VALUES(downspeed), remaining=VALUES(remaining), " +

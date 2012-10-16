@@ -62,7 +62,7 @@ class mysql {
 		void record_user(std::string &record); // (id,uploaded_change,downloaded_change)
 		void record_torrent(std::string &record); // (id,seeders,leechers,snatched_change,balance)
 		void record_snatch(std::string &record); // (uid,fid,tstamp)
-		void record_peer(std::string &record, std::string &ip, std::string &peer_id, std::string &useragent); // (uid,fid,active,peerid,useragent,ip,uploaded,downloaded,upspeed,downspeed,left,timespent,announces)
+		void record_peer(std::string &record, std::string &ip, int port, std::string &peer_id, std::string &useragent); // (uid,fid,active,peerid,useragent,ip,port,uploaded,downloaded,upspeed,downspeed,left,timespent,announces)
 		void record_token(std::string &record);
 		void record_peer_hist(std::string &record, std::string &peer_id, int tid);
 

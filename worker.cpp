@@ -26,7 +26,7 @@
 #include "mysql++.h"
 
 //---------- Worker - does stuff with input
-// Added for testing. //Mobbo
+
 worker::worker(torrent_list &torrents, user_list &users, std::vector<std::string> &_whitelist, config * conf_obj, mysql * db_obj, site_comm &sc) : torrents_list(torrents), users_list(users), whitelist(_whitelist), conf(conf_obj), db(db_obj), s_comm(sc) {
 	status = OPEN;
 }
@@ -497,7 +497,7 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 	std::stringstream record;
 	record << '(' << u.id << ',' << tor.id << ',' << active << ',' << uploaded << ',' << downloaded << ',' << upspeed << ',' << downspeed << ',' << left << ',' << (cur_time - p->first_announced) << ',' << p->announces << ',';
 	std::string record_str = record.str();
-	db->record_peer(record_str, ip, peer_id, headers["user-agent"]);
+	db->record_peer(record_str, ip, port, peer_id, headers["user-agent"]);
 // TODO: Lanz, disapled since it's not used in the front end and table is missing. Add later?
 /*
 	if (real_uploaded_change > 0 || real_downloaded_change > 0) {
