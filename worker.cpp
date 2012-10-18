@@ -503,7 +503,7 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 		record.str("");
 		record << '(' << u.id << ',' << downloaded << ',' << left << ',' << uploaded << ',' << upspeed << ',' << downspeed << ',' << (cur_time - p->first_announced);
 		record_str = record.str();
-		db->record_peer_hist(record_str, peer_id, tor.id);
+		db->record_peer_hist(record_str, peer_id, ip, tor.id);
 	}
 	
 	std::string response = "d8:intervali";

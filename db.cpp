@@ -150,13 +150,13 @@ void mysql::record_peer(std::string &record, std::string &ip, int port, std::str
         update_peer_buffer += q.str();
 }
 
-void mysql::record_peer_hist(std::string &record, std::string &peer_id, int tid){
+void mysql::record_peer_hist(std::string &record, std::string &peer_id, std::string &ip, int tid){
 	boost::mutex::scoped_lock (peer_hist_buffer_lock);
 	if (update_peer_hist_buffer != "") {
 		update_peer_hist_buffer += ",";
 	}
 	mysqlpp::Query q = conn.query();
-	q << record << ',' << mysqlpp::quote << peer_id << ',' << tid << ',' << time(NULL) << ')';
+	q << record << ',' << mysqlpp::quote << peer_id << ',' << mysqlpp::quote << ip << ',' << tid << ',' << time(NULL) << ')';
 	update_peer_hist_buffer += q.str();
 }
 
@@ -276,7 +276,7 @@ void mysql::flush_peer_hist() {
 		sql.clear();
 	}
 
-	sql = "INSERT IGNORE INTO xbt_peers_history (uid, downloaded, remaining, uploaded, upspeed, downspeed, timespent, peer_id, fid, mtime) VALUES " + update_peer_hist_buffer;
+	sql = "INSERT IGNORE INTO xbt_peers_history (uid, downloaded, remaining, uploaded, upspeed, downspeed, timespent, peer_id, ip, fid, mtime) VALUES " + update_peer_hist_buffer;
 	peer_hist_queue.push(sql);
 	update_peer_hist_buffer.clear();
 	if (peer_hist_queue.size() == 2 && hist_active == false) {
