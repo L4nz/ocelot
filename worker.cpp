@@ -277,10 +277,9 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 	p->left = left;
 	long long upspeed = 0;
 	long long downspeed = 0;
-        /* Lanz: Not used for now.
         long long real_uploaded_change = 0;
 	long long real_downloaded_change = 0;
-	*/
+	
 	if(inserted || params["event"] == "started" || uploaded < p->uploaded || downloaded < p->downloaded) {
 		//New peer on this torrent
 		update_torrent = true;
@@ -299,12 +298,12 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 		
 		if(uploaded != p->uploaded) {
 			uploaded_change = uploaded - p->uploaded;
-			/* real_uploaded_change = uploaded_change; */
+			real_uploaded_change = uploaded_change;
 			p->uploaded = uploaded;
 		}
 		if(downloaded != p->downloaded) {
 			downloaded_change = downloaded - p->downloaded;
-			/*real_downloaded_change = downloaded_change; */
+			real_downloaded_change = downloaded_change;
 			p->downloaded = downloaded;
 		}
 		if(uploaded_change || downloaded_change) {
@@ -498,15 +497,15 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 	record << '(' << u.id << ',' << tor.id << ',' << active << ',' << uploaded << ',' << downloaded << ',' << upspeed << ',' << downspeed << ',' << left << ',' << (cur_time - p->first_announced) << ',' << p->announces << ',';
 	std::string record_str = record.str();
 	db->record_peer(record_str, ip, port, peer_id, headers["user-agent"]);
-// TODO: Lanz, disapled since it's not used in the front end and table is missing. Add later?
-/*
+// Lanz, disapled since it's not used in the front end and table is missing. Add later?
+// Renabled.
 	if (real_uploaded_change > 0 || real_downloaded_change > 0) {
 		record.str("");
 		record << '(' << u.id << ',' << downloaded << ',' << left << ',' << uploaded << ',' << upspeed << ',' << downspeed << ',' << (cur_time - p->first_announced);
 		record_str = record.str();
 		db->record_peer_hist(record_str, peer_id, tor.id);
 	}
-*/	
+	
 	std::string response = "d8:intervali";
 	response.reserve(350);
 	response += inttostr(conf->announce_interval+std::min((size_t)600, tor.seeders.size())); // ensure a more even distribution of announces/second
