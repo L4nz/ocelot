@@ -27,7 +27,7 @@
 
 //---------- Worker - does stuff with input
 
-worker::worker(torrent_list &torrents, user_list &users, std::vector<std::string> &_whitelist, config * conf_obj, mysql * db_obj, site_comm &sc) : torrents_list(torrents), users_list(users), whitelist(_whitelist), conf(conf_obj), db(db_obj), s_comm(sc) {
+worker::worker(torrent_list &torrents, user_list &users, std::vector<std::string> &_blacklist, config * conf_obj, mysql * db_obj, site_comm &sc) : torrents_list(torrents), users_list(users), blacklist(_blacklist), conf(conf_obj), db(db_obj), s_comm(sc) {
 	status = OPEN;
 }
 bool worker::signal(int sig) {
@@ -224,17 +224,17 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 	std::string peer_id = peer_id_iterator->second;
 	peer_id = hex_decode(peer_id);
 	
-	if(whitelist.size() > 0) {
-		bool found = false; // Found client in whitelist?
-		for(unsigned int i = 0; i < whitelist.size(); i++) {
-			if(peer_id.find(whitelist[i]) == 0) {
+	if(blacklist.size() > 0) {
+		bool found = false; // Found client in blacklist?
+		for(unsigned int i = 0; i < blacklist.size(); i++) {
+			if(peer_id.find(blacklist[i]) == 0) {
 				found = true;
 				break;
 			}
 		}
 
-		if(!found) {
-			return error("Your client is not on the whitelist");
+		if(found) {
+			return error("Your client is blacklisted!");
 		}
 	}
 	
@@ -737,30 +737,30 @@ std::string worker::update(std::map<std::string, std::string> &params) {
 			std::cout << "Personal freeleech set to user " << passkey << " until time: " << params["until_time"] << std::endl;
 		}
             
-        } else if(params["action"] == "add_whitelist") {
+        } else if(params["action"] == "add_blacklist") {
 		std::string peer_id = params["peer_id"];
-		whitelist.push_back(peer_id);
-		std::cout << "Whitelisted " << peer_id << std::endl;
-	} else if(params["action"] == "remove_whitelist") {
+		blacklist.push_back(peer_id);
+		std::cout << "blacklisted " << peer_id << std::endl;
+	} else if(params["action"] == "remove_blacklist") {
 		std::string peer_id = params["peer_id"];
-		for(unsigned int i = 0; i < whitelist.size(); i++) {
-			if(whitelist[i].compare(peer_id) == 0) {
-				whitelist.erase(whitelist.begin() + i);
+		for(unsigned int i = 0; i < blacklist.size(); i++) {
+			if(blacklist[i].compare(peer_id) == 0) {
+				blacklist.erase(blacklist.begin() + i);
 				break;
 			}
 		}
-		std::cout << "De-whitelisted " << peer_id << std::endl;
-	} else if(params["action"] == "edit_whitelist") {
+		std::cout << "De-blacklisted " << peer_id << std::endl;
+	} else if(params["action"] == "edit_blacklist") {
 		std::string new_peer_id = params["new_peer_id"];
 		std::string old_peer_id = params["old_peer_id"];
-		for(unsigned int i = 0; i < whitelist.size(); i++) {
-			if(whitelist[i].compare(old_peer_id) == 0) {
-				whitelist.erase(whitelist.begin() + i);
+		for(unsigned int i = 0; i < blacklist.size(); i++) {
+			if(blacklist[i].compare(old_peer_id) == 0) {
+				blacklist.erase(blacklist.begin() + i);
 				break;
 			}
 		}
-		whitelist.push_back(new_peer_id);
-		std::cout << "Edited whitelist item from " << old_peer_id << " to " << new_peer_id << std::endl;
+		blacklist.push_back(new_peer_id);
+		std::cout << "Edited blacklist item from " << old_peer_id << " to " << new_peer_id << std::endl;
 	} else if(params["action"] == "update_announce_interval") {
 		unsigned int interval = strtolong(params["new_announce_interval"]);
 		conf->announce_interval = interval;

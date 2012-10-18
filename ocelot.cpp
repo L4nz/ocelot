@@ -35,11 +35,11 @@ int main() {
 	site_comm sc(conf);
 	sc_ptr = &sc;
 	
-	std::vector<std::string> whitelist;
-	db.load_whitelist(whitelist);
-	std::cout << "Loaded " << whitelist.size() << " clients into the whitelist" << std::endl;
-	if(whitelist.size() == 0) {
-		std::cout << "Assuming no whitelist desired, disabling" << std::endl;
+	std::vector<std::string> blacklist;
+	db.load_blacklist(blacklist);
+	std::cout << "Loaded " << blacklist.size() << " clients into the blacklist" << std::endl;
+	if(blacklist.size() == 0) {
+		std::cout << "Assuming no blacklist desired, disabling" << std::endl;
 	}
 	
 	std::unordered_map<std::string, user> users_list;
@@ -53,7 +53,7 @@ int main() {
 	db.load_tokens(torrents_list);
         
 	// Create worker object, which handles announces and scrapes and all that jazz
-	work = new worker(torrents_list, users_list, whitelist, &conf, &db, sc);
+	work = new worker(torrents_list, users_list, blacklist, &conf, &db, sc);
 	
 	// Create connection mother, which binds to its socket and handles the event stuff
 	mother = new connection_mother(work, &conf, &db);

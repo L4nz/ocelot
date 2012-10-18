@@ -57,7 +57,7 @@ class mysql {
 		void load_torrents(std::unordered_map<std::string, torrent> &torrents);
 		void load_users(std::unordered_map<std::string, user> &users);
 		void load_tokens(std::unordered_map<std::string, torrent> &torrents);
-		void load_whitelist(std::vector<std::string> &whitelist);
+		void load_blacklist(std::vector<std::string> &blacklist);
 		
 		void record_user(std::string &record); // (id,uploaded_change,downloaded_change)
 		void record_torrent(std::string &record); // (id,seeders,leechers,snatched_change,balance)

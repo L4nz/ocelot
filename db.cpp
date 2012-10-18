@@ -106,12 +106,12 @@ void mysql::load_tokens(std::unordered_map<std::string, torrent> &torrents) {
 }
 
 
-void mysql::load_whitelist(std::vector<std::string> &whitelist) {
-        mysqlpp::Query query = conn.query("SELECT peer_id FROM xbt_client_whitelist;");
+void mysql::load_blacklist(std::vector<std::string> &blacklist) {
+        mysqlpp::Query query = conn.query("SELECT peer_id FROM xbt_client_blacklist;");
         if(mysqlpp::StoreQueryResult res = query.store()) {
                 size_t num_rows = res.num_rows();
                 for(size_t i = 0; i<num_rows; i++) {
-                        whitelist.push_back(res[i][0].c_str());
+                        blacklist.push_back(res[i][0].c_str());
                 }
         }
 }
