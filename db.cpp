@@ -177,7 +177,7 @@ void mysql::flush() {
 	flush_torrents();
 	flush_snatches();
 	flush_peers();
-	//flush_peer_hist();
+	flush_peer_hist();
 	flush_tokens();
 }
 
