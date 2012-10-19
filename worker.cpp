@@ -277,7 +277,7 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 	p->left = left;
 	long long upspeed = 0;
 	long long downspeed = 0;
-        long long real_uploaded_change = 0;
+    long long real_uploaded_change = 0;
 	long long real_downloaded_change = 0;
 	
 	if(inserted || params["event"] == "started" || uploaded < p->uploaded || downloaded < p->downloaded) {
@@ -342,6 +342,13 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 			if(uploaded_change || downloaded_change) {
 				
 				std::stringstream record;
+				long long bigintmax = 999999999999999;
+				if(uploaded_change > bigintmax) {
+					uploaded_change=bigintmax;
+				}
+				if(downloaded_change > bigintmax) {
+					downloaded_change=bigintmax;
+				}
 				record << '(' << u.id << ',' << uploaded_change << ',' << downloaded_change << ')';
 				std::string record_str = record.str();
 				db->record_user(record_str);
