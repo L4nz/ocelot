@@ -304,18 +304,18 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 		p->announces++;
 		
 		if(uploaded != p->uploaded) {
-			if(uploaded > max_allowed_bytes_transferred) {
-				uploaded = max_allowed_bytes_transferred;
-			}
 			uploaded_change = uploaded - p->uploaded;
+			if(uploaded_change > max_allowed_bytes_transferred) {
+				uploaded_change = max_allowed_bytes_transferred;
+			}
 			real_uploaded_change = uploaded_change;
 			p->uploaded = uploaded;
 		}
 		if(downloaded != p->downloaded) {
-			if(downloaded > max_allowed_bytes_transferred) {
-				downloaded=max_allowed_bytes_transferred;
-			}
 			downloaded_change = downloaded - p->downloaded;
+			if(downloaded_change > max_allowed_bytes_transferred) {
+				downloaded_change=max_allowed_bytes_transferred;
+			}
 			real_downloaded_change = downloaded_change;
 			p->downloaded = downloaded;
 		}
@@ -349,10 +349,10 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 			
                         // Lanz, double seed gives you double upload ammount.
                         if (tor.double_seed || (sit != tor.tokened_users.end() && sit->second.double_seed >= now)) {
-                                uploaded_change *= 2;
-								if(uploaded_change > max_allowed_bytes_transfered) {
-									uploaded_change=max_allowed_bytes_transfered;
+								if(uploaded_change > max_allowed_bytes_transferred) {
+									uploaded_change=max_allowed_bytes_transferred;
 								}
+								uploaded_change *= 2;
                         }
 
 			if(uploaded_change || downloaded_change) {
