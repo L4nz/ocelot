@@ -279,6 +279,7 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 	long long downspeed = 0;
     long long real_uploaded_change = 0;
 	long long real_downloaded_change = 0;
+	long long max_allowed_bytes_transferred = 999999999999999;
 	
 	if(inserted || params["event"] == "started" || uploaded < p->uploaded || downloaded < p->downloaded) {
 		//New peer on this torrent
@@ -288,7 +289,13 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 		p->user_agent = headers["user-agent"];
 		p->first_announced = cur_time;
 		p->last_announced = 0;
+		if(uploaded > max_allowed_bytes_transferred) {
+			uploaded = max_allowed_bytes_transferred;
+		}
 		p->uploaded = uploaded;
+		if(downloaded > max_allowed_bytes_transferred) {
+			downloaded=max_allowed_bytes_transferred;
+		}
 		p->downloaded = downloaded;
 		p->announces = 1;
 	} else {
@@ -297,11 +304,17 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 		p->announces++;
 		
 		if(uploaded != p->uploaded) {
+			if(uploaded > max_allowed_bytes_transferred) {
+				uploaded = max_allowed_bytes_transferred;
+			}
 			uploaded_change = uploaded - p->uploaded;
 			real_uploaded_change = uploaded_change;
 			p->uploaded = uploaded;
 		}
 		if(downloaded != p->downloaded) {
+			if(downloaded > max_allowed_bytes_transferred) {
+				downloaded=max_allowed_bytes_transferred;
+			}
 			downloaded_change = downloaded - p->downloaded;
 			real_downloaded_change = downloaded_change;
 			p->downloaded = downloaded;
@@ -337,18 +350,15 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
                         // Lanz, double seed gives you double upload ammount.
                         if (tor.double_seed || (sit != tor.tokened_users.end() && sit->second.double_seed >= now)) {
                                 uploaded_change *= 2;
+								if(uploaded_change > max_allowed_bytes_transfered) {
+									uploaded_change=max_allowed_bytes_transfered;
+								}
                         }
 
 			if(uploaded_change || downloaded_change) {
 				
 				std::stringstream record;
-				long long bigintmax = 999999999999999;
-				if(uploaded_change > bigintmax) {
-					uploaded_change=bigintmax;
-				}
-				if(downloaded_change > bigintmax) {
-					downloaded_change=bigintmax;
-				}
+
 				record << '(' << u.id << ',' << uploaded_change << ',' << downloaded_change << ')';
 				std::string record_str = record.str();
 				db->record_user(record_str);
