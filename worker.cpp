@@ -518,7 +518,7 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 // Renabled.
 	if (real_uploaded_change > 0 || real_downloaded_change > 0) {
 		record.str("");
-		record << '(' << u.id << ',' << downloaded << ',' << left << ',' << uploaded << ',' << upspeed << ',' << downspeed << ',' << (cur_time - p->first_announced);
+		record << '(' << u.id << ',' << real_downloaded_change << ',' << left << ',' << real_uploaded_change << ',' << upspeed << ',' << downspeed << ',' << (cur_time - p->first_announced);
 		record_str = record.str();
 		db->record_peer_hist(record_str, peer_id, ip, tor.id);
 	}
