@@ -515,14 +515,15 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 	std::string record_str = record.str();
 	db->record_peer(record_str, ip, port, peer_id, headers["user-agent"]);
 // Lanz, disapled since it's not used in the front end and table is missing. Add later?
-// Renabled.
+// Re-enabled.
 	if (real_uploaded_change > 0 || real_downloaded_change > 0) {
 		record.str("");
 		record << '(' << u.id << ',' << real_downloaded_change << ',' << left << ',' << real_uploaded_change << ',' << upspeed << ',' << downspeed << ',' << (cur_time - p->first_announced);
 		record_str = record.str();
 		db->record_peer_hist(record_str, peer_id, ip, tor.id);
 	}
-	
+	// Bit torrent spec mandates that the keys are sorted. 
+	/* Leaving the old code untouched. In case we want it back quickly. Mobbo
 	std::string response = "d8:intervali";
 	response.reserve(350);
 	response += inttostr(conf->announce_interval+std::min((size_t)600, tor.seeders.size())); // ensure a more even distribution of announces/second
@@ -543,11 +544,35 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 	response += "e10:downloadedi";
 	response += inttostr(tor.completed);
 	response += "ee";
+	*/
+	std::string response = "d";
+	response.reserve(350);
+	response += "8:completei";
+	response += inttostr(tor.seeders.size());
+	response += "e10:downloadedi";
+	response += inttostr(tor.completed);
+	response += "e10:incompletei";
+	response += inttostr(tor.leechers.size());
+	response +="e8:intervali";
+	response += inttostr(conf->announce_interval+std::min((size_t)600, tor.seeders.size())); // ensure a more even distribution of announces/second
+	response += "e12:min intervali";
+	response += inttostr(conf->announce_interval);
+	response += "e5:peers";
+	if(peers.length() == 0) {
+		response += "0:";
+	} else {
+		response += inttostr(peers.length());
+		response += ":";
+		response += peers;
+	}
+	response += "e"; // Removed one "e" since thestring ends with peers now
+	
 	
 	return response;
 }
 
 std::string worker::scrape(const std::list<std::string> &infohashes) {
+	// much less needed to be fixed here. Mobbo
 	std::string output = "d5:filesd";
 	for(std::list<std::string>::const_iterator i = infohashes.begin(); i != infohashes.end(); i++) {
 		std::string infohash = *i;
@@ -564,10 +589,10 @@ std::string worker::scrape(const std::list<std::string> &infohashes) {
 		output += infohash;
 		output += "d8:completei";
 		output += inttostr(t->seeders.size());
-		output += "e10:incompletei";
-		output += inttostr(t->leechers.size());
 		output += "e10:downloadedi";
 		output += inttostr(t->completed);
+		output += "e10:incompletei";
+		output += inttostr(t->leechers.size());
 		output += "ee";
 	}
 	output+="ee";
