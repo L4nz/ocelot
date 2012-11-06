@@ -16,7 +16,9 @@ schedule::schedule(connection_mother * mother_obj, worker* worker_obj, config* c
 void schedule::handle(ev::timer &watcher, int events_flags) {
 	
 	if(counter % 20 == 0) {
-		std::cout << "Schedule run #" << counter << " - open: " << mother->get_open_connections() << ", opened: " 
+		time_t now;
+		time(&now);
+		std::cout << now << " Schedule run #" << counter << " - open: " << mother->get_open_connections() << ", opened: " 
 		<< mother->get_opened_connections() << ", speed: "
 		<< ((mother->get_opened_connections()-last_opened_connections)/conf->schedule_interval) << "/s" << std::endl;
 	}

@@ -35,11 +35,14 @@ int main() {
 	site_comm sc(conf);
 	sc_ptr = &sc;
 	
+	time_t now;
+    time(&now);
+	
 	std::vector<std::string> blacklist;
 	db.load_blacklist(blacklist);
-	std::cout << "Loaded " << blacklist.size() << " clients into the blacklist" << std::endl;
+	std::cout << now << " Loaded " << blacklist.size() << " clients into the blacklist" << std::endl;
 	if(blacklist.size() == 0) {
-		std::cout << "Assuming no blacklist desired, disabling" << std::endl;
+		std::cout << now << " Assuming no blacklist desired, disabling" << std::endl;
 	}
 	
 	std::unordered_map<std::string, user> users_list;
