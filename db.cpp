@@ -21,8 +21,9 @@ mysql::mysql(std::string mysql_db, std::string mysql_host, std::string username,
 
 	db = mysql_db, server = mysql_host, db_user = username, pw = password;
 	u_active = false; t_active = false; p_active = false; s_active = false; tok_active = false; hist_active = false;
-
-        std::cout << "Connected to MySQL" << std::endl;
+		time_t now;
+		time(&now);
+        std::cout << now << " Connected to MySQL" << std::endl;
         update_user_buffer = "";
         update_torrent_buffer = "";
         update_peer_buffer = "";

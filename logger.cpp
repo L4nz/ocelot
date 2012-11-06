@@ -24,11 +24,10 @@ logger *logger::get_instance(void) {
 }
 
 bool logger::log(std::string msg) {
-    time_t now;
-    time(&now);
+    
 	boost::mutex::scoped_lock lock(log_lock_);
 	if(log_file_.is_open()) {
-		log_file_ << now << ": " << msg << std::endl;
+		log_file_ << msg << std::endl;
 		log_file_.flush();
 		return true;
 	}
