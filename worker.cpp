@@ -339,7 +339,7 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
                                 std::string record_str = record.str();
                                 db->record_token(record_str);
                         }
-
+					
                         if (tor.free_torrent == NEUTRAL) {
 				downloaded_change = 0;
 				uploaded_change = 0;
@@ -523,28 +523,7 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 		db->record_peer_hist(record_str, peer_id, ip, tor.id);
 	}
 	// Bit torrent spec mandates that the keys are sorted. 
-	/* Leaving the old code untouched. In case we want it back quickly. Mobbo
-	std::string response = "d8:intervali";
-	response.reserve(350);
-	response += inttostr(conf->announce_interval+std::min((size_t)600, tor.seeders.size())); // ensure a more even distribution of announces/second
-	response += "e12:min intervali";
-	response += inttostr(conf->announce_interval);
-	response += "e5:peers";
-	if(peers.length() == 0) {
-		response += "0:";
-	} else {
-		response += inttostr(peers.length());
-		response += ":";
-		response += peers;
-	}
-	response += "8:completei";
-	response += inttostr(tor.seeders.size());
-	response += "e10:incompletei";
-	response += inttostr(tor.leechers.size());
-	response += "e10:downloadedi";
-	response += inttostr(tor.completed);
-	response += "ee";
-	*/
+
 	std::string response = "d";
 	response.reserve(350);
 	response += "8:completei";
@@ -565,14 +544,12 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 		response += ":";
 		response += peers;
 	}
-	response += "e"; // Removed one "e" since thestring ends with peers now
-	
-	
+	response += "e";
 	return response;
 }
 
 std::string worker::scrape(const std::list<std::string> &infohashes) {
-	// much less needed to be fixed here. Mobbo
+	// much less needed to be fixed here for compliance. Mobbo
 	std::string output = "d5:filesd";
 	for(std::list<std::string>::const_iterator i = infohashes.begin(); i != infohashes.end(); i++) {
 		std::string infohash = *i;
