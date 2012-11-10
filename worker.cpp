@@ -50,7 +50,7 @@ std::string worker::work(std::string &input, std::string &ip) {
 		return error("GET string too short");
 	}
 	// outputting input string to console
-	std::cerr << "Input string: " << input;
+	// std::cerr << "Input string: " << input;
 	
 	size_t pos = 5; // skip GET /
 	
@@ -548,7 +548,7 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 	}
 	response += "e";
 	// Outputting the response to console.
-	std::cerr << "Response string: " << response;
+	// std::cerr << "Response string: " << response;
 	return response;
 }
 
@@ -578,7 +578,7 @@ std::string worker::scrape(const std::list<std::string> &infohashes) {
 	}
 	output+="ee";
 	// Outputting the response to console.
-	std::cerr << "Response string: " << output;
+	// std::cerr << "Response string: " << output;
 	return output;
 }
 
