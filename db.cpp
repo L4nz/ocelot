@@ -188,8 +188,9 @@ void mysql::flush_users() {
 	if (update_user_buffer == "") {
 		return;
 	}
-	sql = "INSERT INTO users_main (ID, Uploaded, Downloaded) VALUES " + update_user_buffer +
-		" ON DUPLICATE KEY UPDATE Uploaded = Uploaded + VALUES(Uploaded), Downloaded = Downloaded + VALUES(Downloaded)";
+	sql = "INSERT INTO users_main (ID, Uploaded, Downloaded, UploadDaily, DownloadDaily) VALUES " + update_user_buffer +
+		" ON DUPLICATE KEY UPDATE Uploaded = Uploaded + VALUES(Uploaded), Downloaded = Downloaded + VALUES(Downloaded), " +
+		"UploadDaily = UploadDaily + VALUES(UploadDaily), DownloadDaily = DownloadDaily + VALUES(DownloadDaily)";
 	user_queue.push(sql);
 	update_user_buffer.clear();
 	if (user_queue.size() == 1 && u_active == false) {

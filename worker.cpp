@@ -357,11 +357,11 @@ std::string worker::announce(torrent &tor, user &u, std::map<std::string, std::s
 								uploaded_change *= 2;
                         }
 
-			if(uploaded_change || downloaded_change) {
-				
+			if(uploaded_change || downloaded_change || real_uploaded_change || real_downloaded_change) {
+				//Changed the condition to accurately catch real changes
 				std::stringstream record;
 
-				record << '(' << u.id << ',' << uploaded_change << ',' << downloaded_change << ')';
+				record << '(' << u.id << ',' << uploaded_change << ',' << downloaded_change << ',' << real_uploaded_change << ',' << real_downloaded_change << ')';
 				std::string record_str = record.str();
 				db->record_user(record_str);
 			}
