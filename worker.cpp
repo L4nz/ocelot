@@ -58,7 +58,7 @@ std::string worker::work(std::string &input, std::string &ip) {
 	std::string passkey;
 	passkey.reserve(32);
 	if(input[37] != '/') {
-		std::cout << "Input string: " << input;
+		std::cout << "Malformed Announce: " << input;
 		return error("Malformed announce");
 	} 
 	
@@ -184,6 +184,7 @@ std::string worker::work(std::string &input, std::string &ip) {
 		std::string info_hash_decoded = hex_decode(params["info_hash"]);
 		torrent_list::iterator tor = torrents_list.find(info_hash_decoded);
 		if(tor == torrents_list.end()) {
+			std::cout << "Unreistered torrent: " << input;
  			return error("unregistered torrent");
 		}
 		return announce(tor->second, u->second, params, headers, ip);
