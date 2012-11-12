@@ -89,6 +89,7 @@ std::string worker::work(std::string &input, std::string &ip) {
 			break;
 	}
 	if(action == INVALID) {
+		std::cout << "Invalid action: " << input;
 		return error("invalid action");
 	}
 
