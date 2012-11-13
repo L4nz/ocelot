@@ -34,7 +34,7 @@ mysql::mysql(std::string mysql_db, std::string mysql_host, std::string username,
 		time ( &rawtime );
 		timeinfo = localtime ( &rawtime );
 
-		strftime (buffer,80,"%x %X Connected to MySQL",timeinfo);
+		strftime (buffer,80,"%Y-%m-%d %X Connected to MySQL",timeinfo);
 		std::cout << buffer << std::endl;
 		
 		update_user_buffer = "";
