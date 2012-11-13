@@ -21,13 +21,23 @@ mysql::mysql(std::string mysql_db, std::string mysql_host, std::string username,
 
 	db = mysql_db, server = mysql_host, db_user = username, pw = password;
 	u_active = false; t_active = false; p_active = false; s_active = false; tok_active = false; hist_active = false;
+		/*
 		time_t now;
-		//struct tm * timeinfo;
 		time(&now);
-		//timeinfo = localtime(&now);
-        //used for asctime (timeinfo)
+		
 		std::cout << ctime (&now) << " Connected to MySQL" << std::endl;
-        update_user_buffer = "";
+        */
+		time_t rawtime;
+		struct tm * timeinfo;
+		char buffer [80];
+
+		time ( &rawtime );
+		timeinfo = localtime ( &rawtime );
+
+		strftime (buffer,80,"%x %X Connected to MySQL",timeinfo);
+		std::cout << buffer << std::endl;
+		
+		update_user_buffer = "";
         update_torrent_buffer = "";
         update_peer_buffer = "";
         update_snatch_buffer = "";
