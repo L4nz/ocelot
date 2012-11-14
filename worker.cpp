@@ -49,8 +49,6 @@ std::string worker::work(std::string &input, std::string &ip) {
 	if(input_length < 60) { // Way too short to be anything useful
 		return error("GET string too short");
 	}
-	// outputting input string to console
-	// std::cerr << "Input string: " << input;
 	
 	size_t pos = 5; // skip GET /
 	
@@ -185,7 +183,7 @@ std::string worker::work(std::string &input, std::string &ip) {
 		std::string info_hash_decoded = hex_decode(params["info_hash"]);
 		torrent_list::iterator tor = torrents_list.find(info_hash_decoded);
 		if(tor == torrents_list.end()) {
-			std::cout << "Unreistered torrent: " << input;
+			//std::cout << "Unregistered torrent: " << input;
  			return error("unregistered torrent");
 		}
 		return announce(tor->second, u->second, params, headers, ip);
