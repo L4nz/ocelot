@@ -56,7 +56,7 @@ std::string worker::work(std::string &input, std::string &ip) {
 	std::string passkey;
 	passkey.reserve(32);
 	if(input[37] != '/') {
-		std::cout << "Malformed Announce: " << input;
+		//std::cout << "Malformed Announce: " << input;
 		return error("Malformed announce");
 	} 
 	
